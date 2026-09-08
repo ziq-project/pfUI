@@ -903,6 +903,17 @@ local adapta = {
 }
 
 -- assign profiles to userdata
+-- CONFIRMED (user report, multiple independent players, 2026-09-08): on a
+-- fresh install / a character whose account-wide SavedVariables haven't
+-- been initialized yet, pfUI_profiles is nil at the point this file's
+-- top-level code runs (its own SavedVariables load only guarantees it's a
+-- table AFTER VARIABLES_LOADED fires, further below) -- indexing it here
+-- unguarded throws "attempt to index global 'pfUI_profiles' (a nil value)"
+-- and aborts this whole chunk immediately, which means the
+-- profile_loader:RegisterEvent("VARIABLES_LOADED") call below (the ONLY
+-- other place pfUI_profiles gets a safe fallback) never even runs -- so
+-- this can never self-heal on a later load either. Guard here too.
+pfUI_profiles = pfUI_profiles or {}
 pfUI_profiles["Modern"] = modern
 pfUI_profiles["Nostalgia"] = nostalgia
 pfUI_profiles["Legacy"] = legacy
