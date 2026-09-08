@@ -367,6 +367,33 @@ pfUI:SetScript("OnEvent", function()
     pfUI.version.fix   = tonumber(fix)   or 0
     pfUI.version.string = pfUI.version.major .. "." .. pfUI.version.minor .. "." .. pfUI.version.fix
 
+    -- CONFIRMED IN-GAME (user report, 2026-09-08): a client crash during
+    -- logout can leave a SavedVariable explicitly written as literal
+    -- "= nil" (WoW faithfully serializes whatever's in memory at save time,
+    -- crash mid-write or not) rather than simply missing -- NOT the same
+    -- case as "fresh install" (pfUI_init and pfUI_config both empty
+    -- together, the only scenario the block below originally guarded for)
+    -- and can hit pfUI_profiles/pfUI_config/pfUI_init/pfUI_cache
+    -- independently of each other and of a fresh install. Any one of them
+    -- nil here throws ("attempt to index...") and aborts pfUI's entire
+    -- ADDON_LOADED handling -- which cascades hard, since pfQuest,
+    -- LoseControl, ModernMapMarkers, BetterCharacterPanel etc. all call
+    -- into pfUI's own shared skinning API (CreateBackdrop -> GetBorderSize,
+    -- both index pfUI_config) for their own UI, so a nil pfUI_config breaks
+    -- THEM too, not just pfUI. Guard all four defensively up front, before
+    -- anything below (or any later event, e.g. libhealth.lua/libpredict.lua
+    -- on PLAYER_ENTERING_WORLD, which index pfUI_cache) touches them --
+    -- same fix shape as the earlier pfUI_profiles-only guard in
+    -- env\profiles.lua, but here at the point actually guaranteed to run
+    -- AFTER SavedVariables have loaded (env\profiles.lua's own top-level
+    -- code runs too early to survive a SavedVariables file that overwrites
+    -- pfUI_profiles again, e.g. back to a literal nil, right after).
+    pfUI_profiles = pfUI_profiles or {}
+    pfUI_init = pfUI_init or {}
+    pfUI_config = pfUI_config or {}
+    pfUI_cache = pfUI_cache or {}
+    pfUI_throttle = pfUI_throttle or {}
+
     -- use "Modern" as default profile on a fresh install
     if pfUI.api.isempty(pfUI_init) and pfUI.api.isempty(pfUI_config) then
       pfUI_config = pfUI.api.CopyTable(pfUI_profiles["Modern"]) or {}
