@@ -1,0 +1,17 @@
+## Interface: 11200
+## Title: |cff33ffccpf|cffffffffUI - Project Legacy
+## Author: Shagu | a fork by Ayrill
+## Notes: A complete user interface replacement.
+## Notes-ruRU: Полная замена пользовательского интерфейса.
+## Version: 5.5.6
+## SavedVariables: pfUI_profiles, pfUI_addon_profiles, pfUI_cache, pfUI_throttle
+## SavedVariablesPerCharacter: pfUI_config, pfUI_init, pfUI_playerDB
+
+pfUI.lua
+
+init\env.xml
+init\compat.xml
+init\api.xml
+init\libs.xml
+init\skins.xml
+init\modules.xml
