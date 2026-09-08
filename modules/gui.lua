@@ -1226,6 +1226,25 @@ pfUI:RegisterModule("gui", "vanilla:tbc", function ()
       table.insert(pfUI.gui.dropdowns.fonts, "Fonts\\FZXHLJW.TTF:FZXHLJW")
     end
 
+    -- Extra decorative fonts, folded in from the formerly-separate pfUI-fonts
+    -- addon (per user request, 2026-09-08 -- one less addon for players to
+    -- download). Was pfUI-fonts.lua's own addonpath-detection + table.insert
+    -- block; hardcoded to pfUI's own path now that the font files live
+    -- directly under Interface\AddOns\pfUI\fonts instead of a separate addon.
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\BalooBhaina.ttf:BalooBhaina")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\Bungee.ttf:Bungee")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\CaesarDressing.ttf:CaesarDressing")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\CoveredByYourGrace.ttf:CoveredByYourGrace")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\JotiOne.ttf:JotiOne")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\LondrinaSolid.ttf:LondrinaSolid")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\NovaFlat.ttf:NovaFlat")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\Roboto.ttf:Roboto")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\SedgwickAveDisplay.ttf:SedgwickAveDisplay")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\ShareBold.ttf:ShareBold")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\Share.ttf:Share")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\Sniglet.ttf:Sniglet")
+    table.insert(pfUI.gui.dropdowns.fonts, "Interface\\AddOns\\pfUI\\fonts\\SquadaOne.ttf:SquadaOne")
+
     pfUI.gui.dropdowns.loot_rarity = {}
     for i=0, getn(_G.ITEM_QUALITY_COLORS)-2  do
       local entry = string.format("%d:%s", i, string.format("%s%s%s", _G.ITEM_QUALITY_COLORS[i].hex, _G[string.format("ITEM_QUALITY%d_DESC",i)], FONT_COLOR_CODE_CLOSE))
