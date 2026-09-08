@@ -1,6 +1,6 @@
 ## Interface: 11200
 ## Title: |cff33ffccpf|cffffffffUI - Project Legacy
-## Author: Shagu | a fork by Ayrill
+## Author: Shagu | a fork by Ayrill | a Project Legacy fork by ziq
 ## Notes: A complete user interface replacement.
 ## Notes-ruRU: Полная замена пользовательского интерфейса.
 ## Version: 5.5.6

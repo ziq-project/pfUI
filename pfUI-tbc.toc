@@ -1,6 +1,6 @@
 ## Interface: 20400
 ## Title: |cff33ffccpf|cffffffffUI
-## Author: Shagu
+## Author: Shagu | a Project Legacy fork by ziq
 ## Notes: A complete user interface replacement.
 ## Notes-ruRU: Полная замена пользовательского интерфейса.
 ## Version: 5.5.4
