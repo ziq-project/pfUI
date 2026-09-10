@@ -196,6 +196,7 @@ function pfUI:LoadConfig()
   pfUI:UpdateConfig("loot",       nil,           "rollannouncequal", "3")
   pfUI:UpdateConfig("loot",       nil,           "rollannounce",     "0")
   pfUI:UpdateConfig("loot",       nil,           "raritytimer",      "1")
+  pfUI:UpdateConfig("loot",       nil,           "aoeloot",          "0")
 
   pfUI:UpdateConfig("unitframes", nil,           "disable",          "0")
   pfUI:UpdateConfig("unitframes", nil,           "pastel",           "1")

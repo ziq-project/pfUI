@@ -1942,6 +1942,7 @@ pfUI:RegisterModule("gui", "vanilla:tbc", function ()
       CreateConfig(nil, T["Random Roll Announcement Rarity"], C.loot, "rollannouncequal", "dropdown", pfUI.gui.dropdowns.loot_rarity)
       CreateConfig(nil, T["Detailed Random Roll Announcement"], C.loot, "rollannounce", "checkbox")
       CreateConfig(nil, T["Use Item Rarity Color For Loot-Roll Timer"], C.loot, "raritytimer", "checkbox")
+      CreateConfig(nil, T["Enable AoE Loot (Requires Client Support)"], C.loot, "aoeloot", "checkbox")
     end)
 
     CreateGUIEntry(T["Minimap"], T["Minimap"], function()

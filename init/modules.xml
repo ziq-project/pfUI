@@ -40,6 +40,7 @@
   <Include file="..\modules\buffwatch.lua"/>
   <Include file="..\modules\nameplates.lua"/>
   <Include file="..\modules\loot.lua"/>
+  <Include file="..\modules\aoeloot.lua"/>
   <Include file="..\modules\roll.lua"/>
   <Include file="..\modules\infight.lua"/>
   <Include file="..\modules\sellvalue.lua"/>
