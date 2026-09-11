@@ -17,6 +17,52 @@ function SlashCmdList.GM(msg, editbox)
   ToggleHelpFrame(1)
 end
 
+-- CONFIRMED IN-GAME (2026-09-11): this build's ClassicAPI exposes several
+-- modern-retail UI mixins (CreateColor/Mixin/ColorMixin, CreateObjectPool,
+-- the Item mixin) but not these two convenience constructors -- global,
+-- since callers (loothistory.lua and, ported later, equipmentmanager.lua)
+-- use them as bare globals the same way upstream's client provides them.
+-- Guarded so a future client that does add real support isn't overridden.
+if not CreateScrollFrame then
+  function CreateScrollFrame(name, parent)
+    local scroll = CreateFrame("ScrollFrame", name, parent)
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function()
+      local child = this:GetScrollChild()
+      if not child then return end
+      local range = child:GetHeight() - this:GetHeight()
+      if range < 0 then range = 0 end
+      local cur = this:GetVerticalScroll() - (arg1 * 20)
+      if cur < 0 then cur = 0 end
+      if cur > range then cur = range end
+      this:SetVerticalScroll(cur)
+    end)
+    -- No-op: real ScrollFrames recompute their scroll range on
+    -- SetScrollChild already, kept only so callers written against the
+    -- retail API (which calls this after resizing the child) don't error.
+    function scroll:UpdateScrollState() end
+    return scroll
+  end
+end
+
+-- Also missing here. Every UIPanelButtonTemplate button in this codebase
+-- already gets pfUI's border via the global Blizzard-template skin
+-- (skins/blizzard/*) without any per-instance call, so callers written
+-- against the retail API (which calls this once per button after creating
+-- it) need nothing further done -- a no-op satisfies the call.
+if not SkinButton then
+  function SkinButton(button) end
+end
+
+if not CreateScrollChild then
+  function CreateScrollChild(name, scrollFrame)
+    local child = CreateFrame("Frame", name, scrollFrame)
+    child:SetWidth(scrollFrame:GetWidth())
+    scrollFrame:SetScrollChild(child)
+    return child
+  end
+end
+
 pfUI = CreateFrame("Frame", nil, UIParent)
 pfUI:RegisterEvent("ADDON_LOADED")
 -- Also fire on VARIABLES_LOADED (fires once, after every addon has

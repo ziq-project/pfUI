@@ -1123,4 +1123,46 @@ pfUI:RegisterModule("bags", "vanilla:tbc", function ()
       end
     end
   end
+
+  -- pfUI's own bag sorter (libbagsort), wired into the existing third-party
+  -- sort-button slot (see pfUI.thirdparty.RegisterBagSort, already used for
+  -- MrPlow above). Opt-in and off by default -- this fork's users may
+  -- already have a separate sort addon (e.g. SortBags) bound to a key, and
+  -- registering unconditionally would silently claim the button slot ahead
+  -- of anything that registers later.
+  -- Ported from brues-code/pfUI (upstream), 2026-09-11.
+  if C.appearance.bags.internalsort == "1" then
+    local sort = CreateFrame("Frame", nil)
+    sort:RegisterEvent("PLAYER_ENTERING_WORLD")
+    sort:SetScript("OnEvent", function()
+      this:UnregisterAllEvents()
+      if not pfUI.api.libbagsort then return end
+
+      local function opts()
+        return {
+          reverse     = C.appearance.bags.sortreverse == "1",
+          reversePrio = C.appearance.bags.sortprioreverse == "1",
+        }
+      end
+
+      pfUI.thirdparty.RegisterBagSort("pfUI",
+        function()
+          pfUI.api.libbagsort:Sort({0, 1, 2, 3, 4}, opts())
+        end,
+        function()
+          GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+          GameTooltip:SetText(T["Sort Bags"])
+          GameTooltip:Show()
+        end,
+        function()
+          pfUI.api.libbagsort:Sort({-1, 5, 6, 7, 8, 9, 10}, opts())
+        end,
+        function()
+          GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+          GameTooltip:SetText(T["Sort Bank"])
+          GameTooltip:Show()
+        end
+      )
+    end)
+  end
 end)
