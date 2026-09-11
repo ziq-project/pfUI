@@ -53,9 +53,15 @@ pfUI:RegisterModule("itemcount", "vanilla:tbc", function ()
     return count
   end
 
+  -- Reported: "attempt to perform arithmetic on global
+  -- 'INVSLOT_FIRST_EQUIPPED' (a nil value)" -- Blizzard normally defines
+  -- these two as part of the default UI's Constants.lua, but they're
+  -- apparently missing on at least one player's client build. The slot
+  -- range itself (1 = head ... 19 = tabard) has been stable since vanilla,
+  -- so fall back to the literal numbers instead of depending on the global.
   local function CountEquipped(id)
     local count = 0
-    for slot = INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED do
+    for slot = INVSLOT_FIRST_EQUIPPED or 1, INVSLOT_LAST_EQUIPPED or 19 do
       if GetInventoryItemID("player", slot) == id then
         count = count + 1
       end
