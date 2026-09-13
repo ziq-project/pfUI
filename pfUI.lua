@@ -63,6 +63,181 @@ if not CreateScrollChild then
   end
 end
 
+-- CONFIRMED IN-GAME (2026-09-11): also missing, unlike everything it would
+-- need internally (IconDataProviderMixin/IconDataProviderExtraType/Mixin,
+-- all present). Ported for modules/macroicons.lua -- a from-scratch,
+-- virtualized icon-grid picker built directly on IconDataProviderMixin
+-- (confirmed live: Init(extraType), GetNumIcons(), GetIconByIndex(i) ->
+-- full "Interface\Icons\..." path, GetIconForSaving(i) -> bare basename,
+-- the exact string C_Macro.CreateMacro/EditMacro expect). Matches the
+-- calling convention every known caller (macroicons.lua; equipmentmanager
+-- .lua chose not to use this, see its own header note) uses: attaches a
+-- name editbox and a search box directly onto `parent` (parent.editbox /
+-- parent.search), and returns a widget with SetIcon(tex)/GetIcon()/
+-- Refresh()/SetIconAreaShown(shown).
+if not CreateIconPicker then
+  local ICON_SIZE = 36
+  local ICON_PAD  = 4
+  local GRID_COLS = 10
+
+  function CreateIconPicker(name, parent, extraType, popupText)
+    local provider = Mixin({}, IconDataProviderMixin)
+    provider:Init(extraType)
+
+    parent.editbox = CreateFrame("EditBox", name.."Name", parent, "InputBoxTemplate")
+    parent.editbox:SetSize(260, 20)
+    parent.editbox:SetPoint("TOPLEFT", parent, "TOPLEFT", 70, -16)
+    parent.editbox:SetAutoFocus(false)
+
+    local nameLabel = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    nameLabel:SetPoint("RIGHT", parent.editbox, "LEFT", -6, 0)
+    nameLabel:SetText(popupText or NAME)
+
+    parent.search = CreateFrame("EditBox", name.."Search", parent, "InputBoxTemplate")
+    parent.search:SetSize(150, 20)
+    parent.search:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, -16)
+    parent.search:SetAutoFocus(false)
+
+    local searchLabel = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    searchLabel:SetPoint("RIGHT", parent.search, "LEFT", -6, 0)
+    searchLabel:SetText(SEARCH)
+
+    local previewBg = CreateFrame("Frame", nil, parent)
+    previewBg:SetSize(40, 40)
+    previewBg:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, -46)
+    pfUI.api.CreateBackdrop(previewBg, nil, true)
+    local preview = previewBg:CreateTexture(nil, "ARTWORK")
+    preview:SetPoint("TOPLEFT", previewBg, "TOPLEFT", 2, -2)
+    preview:SetPoint("BOTTOMRIGHT", previewBg, "BOTTOMRIGHT", -2, 2)
+    preview:SetTexCoord(.08, .92, .08, .92)
+
+    -- The whole grid area below the preview/search row -- what
+    -- SetIconAreaShown toggles (equipmentmanager.lua hides this for a
+    -- rename-only popup; unused by macroicons.lua, which always shows it).
+    local iconArea = CreateFrame("Frame", nil, parent)
+    iconArea:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, -92)
+    iconArea:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -16, 46)
+    pfUI.api.CreateBackdrop(iconArea, nil, true)
+
+    local scroll = CreateScrollFrame(name.."Scroll", iconArea)
+    scroll:SetPoint("TOPLEFT", iconArea, "TOPLEFT", 4, -4)
+    scroll:SetPoint("BOTTOMRIGHT", iconArea, "BOTTOMRIGHT", -4, 4)
+    local child = CreateScrollChild(name.."ScrollChild", scroll)
+    child:SetWidth(GRID_COLS * (ICON_SIZE + ICON_PAD))
+
+    local selectedIcon  -- full "Interface\Icons\..." path, for the preview
+    local selectedIndex -- provider index, for GetIcon()'s GetIconForSaving()
+    local filtered       -- index list while a search filter is active, else nil
+    local buttons = {}
+
+    local function VisibleCount()
+      return filtered and table.getn(filtered) or provider:GetNumIcons()
+    end
+
+    local function RealIndex(visIdx)
+      return filtered and filtered[visIdx] or visIdx
+    end
+
+    local function SelectVisible(visIdx)
+      selectedIndex = RealIndex(visIdx)
+      selectedIcon = provider:GetIconByIndex(selectedIndex)
+      preview:SetTexture(selectedIcon)
+    end
+
+    local function GetOrCreateButton(i)
+      local b = buttons[i]
+      if b then return b end
+      b = CreateFrame("Button", nil, child)
+      b:SetSize(ICON_SIZE, ICON_SIZE)
+      pfUI.api.CreateBackdrop(b)
+      b.tex = b:CreateTexture(nil, "ARTWORK")
+      b.tex:SetPoint("TOPLEFT", b, "TOPLEFT", 2, -2)
+      b.tex:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -2, 2)
+      b.tex:SetTexCoord(.08, .92, .08, .92)
+      b:SetScript("OnClick", function() SelectVisible(this.visIdx) end)
+      b:SetScript("OnEnter", function()
+        if this.realIdx then
+          GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+          GameTooltip:SetText(provider:GetIconForSaving(this.realIdx))
+          GameTooltip:Show()
+        end
+      end)
+      b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+      buttons[i] = b
+      return b
+    end
+
+    local function RefreshGrid()
+      local num = VisibleCount()
+      local rows = math.ceil(num / GRID_COLS)
+      child:SetHeight(math.max(1, rows * (ICON_SIZE + ICON_PAD)))
+      for i = 1, num do
+        local b = GetOrCreateButton(i)
+        local real = RealIndex(i)
+        b.tex:SetTexture(provider:GetIconByIndex(real))
+        b.visIdx, b.realIdx = i, real
+        local col = math.mod(i - 1, GRID_COLS)
+        local row = math.floor((i - 1) / GRID_COLS)
+        b:ClearAllPoints()
+        b:SetPoint("TOPLEFT", child, "TOPLEFT", col * (ICON_SIZE + ICON_PAD), -row * (ICON_SIZE + ICON_PAD))
+        b:Show()
+      end
+      for i = num + 1, table.getn(buttons) do
+        buttons[i]:Hide()
+      end
+      scroll:SetVerticalScroll(0)
+    end
+
+    -- Filters by substring match against the icon's own path (so e.g.
+    -- "fire" finds every INV_*Fire*/Spell_Fire_* icon) -- there's no name
+    -- string available per-icon, only the texture path itself.
+    parent.search:SetScript("OnTextChanged", function()
+      local text = string.lower(this:GetText() or "")
+      if text == "" then
+        filtered = nil
+      else
+        filtered = {}
+        local num = provider:GetNumIcons()
+        for i = 1, num do
+          local tex = provider:GetIconByIndex(i)
+          if tex and string.find(string.lower(tex), text, 1, true) then
+            table.insert(filtered, i)
+          end
+        end
+      end
+      RefreshGrid()
+    end)
+
+    local self = {}
+
+    function self.SetIcon(tex)
+      if tex and not string.find(tex, "\\") then
+        tex = "Interface\\Icons\\" .. tex
+      end
+      selectedIcon = tex
+      selectedIndex = nil
+      preview:SetTexture(tex)
+    end
+
+    function self.GetIcon()
+      if selectedIndex then return provider:GetIconForSaving(selectedIndex) end
+      return "INV_MISC_QUESTIONMARK"
+    end
+
+    function self.Refresh()
+      parent.search:SetText("")
+      filtered = nil
+      RefreshGrid()
+    end
+
+    function self.SetIconAreaShown(shown)
+      if shown then iconArea:Show() else iconArea:Hide() end
+    end
+
+    return self
+  end
+end
+
 pfUI = CreateFrame("Frame", nil, UIParent)
 pfUI:RegisterEvent("ADDON_LOADED")
 -- Also fire on VARIABLES_LOADED (fires once, after every addon has
