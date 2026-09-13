@@ -1690,10 +1690,21 @@ pfUI:RegisterModule("gui", "vanilla:tbc", function ()
       CreateConfig(nil, T["Energy Color"], C.unitframes, "energycolor", "color")
       CreateConfig(nil, T["Focus Color"], C.unitframes, "focuscolor", "color")
 
-      CreateConfig(nil, T["SuperWoW Settings"], nil, nil, "header")
-      CreateConfig(nil, T["Show Druid Mana Bar"], C.unitframes, "druidmanabar", "checkbox", nil, nil, nil, nil, "vanilla" )
-      CreateConfig(nil, T["Druid Mana Bar Height"], C.unitframes, "druidmanaheight", nil, nil, nil, nil, nil, "vanilla" )
-      CreateConfig(nil, T["Druid Mana Bar Text"], C.unitframes, "druidmanatext", "checkbox", nil, nil, nil, nil, "vanilla" )
+      local UpdateDruidManaConfig = function()
+        if pfUI.druidmana and pfUI.druidmana.UpdateConfig then
+          return pfUI.druidmana.UpdateConfig()
+        end
+      end
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar"], nil, nil, "header")
+      CreateConfig(UpdateDruidManaConfig, T["Show Druid Mana Bar"], C.unitframes, "druidmanabar", "checkbox", nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Show Druid Mana Bar On Target"], C.unitframes, "druidmanatarget", "checkbox", nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Height"], C.unitframes, "druidmanaheight", nil, nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Width"], C.unitframes, "druidmanawidth", nil, nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar X-Offset"], C.unitframes, "druidmanaoffx", nil, nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Y-Offset"], C.unitframes, "druidmanaoffy", nil, nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Spacing"], C.unitframes, "druidmanaspace", nil, nil, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Texture"], C.unitframes, "druidmanatexture", "dropdown", pfUI.gui.dropdowns.uf_bartexture, nil, nil, nil, "vanilla" )
+      CreateConfig(UpdateDruidManaConfig, T["Druid Mana Bar Text"], C.unitframes, "druidmanatext", "checkbox", nil, nil, nil, nil, "vanilla" )
     end)
 
     -- Shared Unit- and Groupframes

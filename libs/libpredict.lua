@@ -148,10 +148,8 @@ function libpredict:ParseComm(sender, msg)
         heal = tonumber(string.sub(msg, 4, 8))
         target = string.sub(msg,9, -1)
 
-        -- UnitCastingInfo() can change between calls while a cast starts/stops.
-        -- Read the cast information once so start/end timestamps always belong
-        -- to the same cast, and abort if the API has no complete cast data.
-        local _, _, _, _, starttime, endtime = UnitCastingInfo(sender)
+        local starttime = select(5, UnitCastingInfo(sender))
+        local endtime = select(6, UnitCastingInfo(sender))
         if not starttime or not endtime then return end
         time = endtime - starttime
       elseif msgtype == 1 then
@@ -160,10 +158,8 @@ function libpredict:ParseComm(sender, msg)
         msgtype = "Heal"
         heal = tonumber(string.sub(msg,4, 8))
         target = {strsplit(":", string.sub(msg,9, -1))}
-        -- UnitCastingInfo() can change between calls while a cast starts/stops.
-        -- Read the cast information once so start/end timestamps always belong
-        -- to the same cast, and abort if the API has no complete cast data.
-        local _, _, _, _, starttime, endtime = UnitCastingInfo(sender)
+        local starttime = select(5, UnitCastingInfo(sender))
+        local endtime = select(6, UnitCastingInfo(sender))
         if not starttime or not endtime then return end
         time = endtime - starttime
       end
